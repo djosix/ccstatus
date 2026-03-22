@@ -23,7 +23,7 @@ go test -cover ./...                                   # Run tests with coverage
 go test -run TestTokenMetrics ./...                     # Run single test
 golangci-lint run                                      # Run linter
 gofumpt -l -w .                                        # Format (stricter than gofmt)
-goimports -w -local github.com/moond4rk/ccstatus .     # Format imports
+goimports -w -local github.com/djosix/ccstatus .     # Format imports
 go build -o ccstatus ./cmd/ccstatus                    # Build binary
 go install ./cmd/ccstatus                              # Install to $GOBIN
 ```

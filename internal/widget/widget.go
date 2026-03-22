@@ -2,9 +2,9 @@
 package widget
 
 import (
-	"github.com/moond4rk/ccstatus/internal/config"
-	"github.com/moond4rk/ccstatus/internal/git"
-	"github.com/moond4rk/ccstatus/internal/status"
+	"github.com/djosix/ccstatus/internal/config"
+	"github.com/djosix/ccstatus/internal/git"
+	"github.com/djosix/ccstatus/internal/status"
 )
 
 // RenderContext carries runtime data available to all widgets during rendering.

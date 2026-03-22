@@ -3,7 +3,7 @@ package widget
 import (
 	"fmt"
 
-	"github.com/moond4rk/ccstatus/internal/config"
+	"github.com/djosix/ccstatus/internal/config"
 )
 
 const costPrecisionThreshold = 0.01

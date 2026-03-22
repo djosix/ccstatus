@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/moond4rk/ccstatus/internal/config"
-	"github.com/moond4rk/ccstatus/internal/jsonl"
+	"github.com/djosix/ccstatus/internal/config"
+	"github.com/djosix/ccstatus/internal/jsonl"
 )
 
 const (

@@ -5,10 +5,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/moond4rk/ccstatus/internal/color"
-	"github.com/moond4rk/ccstatus/internal/config"
-	"github.com/moond4rk/ccstatus/internal/status"
-	"github.com/moond4rk/ccstatus/internal/widget"
+	"github.com/djosix/ccstatus/internal/color"
+	"github.com/djosix/ccstatus/internal/config"
+	"github.com/djosix/ccstatus/internal/status"
+	"github.com/djosix/ccstatus/internal/widget"
 )
 
 func intPtr(v int) *int { return &v }

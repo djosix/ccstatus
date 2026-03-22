@@ -3,7 +3,7 @@ package widget
 import (
 	"strconv"
 
-	"github.com/moond4rk/ccstatus/internal/config"
+	"github.com/djosix/ccstatus/internal/config"
 )
 
 // GitChangesWidget displays the number of uncommitted changes.

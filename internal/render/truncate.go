@@ -4,7 +4,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/moond4rk/ccstatus/internal/color"
+	"github.com/djosix/ccstatus/internal/color"
 )
 
 const truncSuffix = "..."

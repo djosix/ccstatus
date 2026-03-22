@@ -1,7 +1,7 @@
 package widget
 
 import (
-	"github.com/moond4rk/ccstatus/internal/config"
+	"github.com/djosix/ccstatus/internal/config"
 )
 
 // GitWorktreeWidget displays the current git worktree name.

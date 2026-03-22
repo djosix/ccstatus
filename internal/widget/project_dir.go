@@ -3,7 +3,7 @@ package widget
 import (
 	"path/filepath"
 
-	"github.com/moond4rk/ccstatus/internal/config"
+	"github.com/djosix/ccstatus/internal/config"
 )
 
 // ProjectDirWidget displays the project root directory.

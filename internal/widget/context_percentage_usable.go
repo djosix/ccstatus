@@ -3,8 +3,8 @@ package widget
 import (
 	"fmt"
 
-	"github.com/moond4rk/ccstatus/internal/config"
-	"github.com/moond4rk/ccstatus/internal/status"
+	"github.com/djosix/ccstatus/internal/config"
+	"github.com/djosix/ccstatus/internal/status"
 )
 
 // ContextPercentageUsableWidget displays context usage as a percentage of the usable window (80% of max).

@@ -1,4 +1,4 @@
-module github.com/moond4rk/ccstatus
+module github.com/djosix/ccstatus
 
 go 1.25.4
 

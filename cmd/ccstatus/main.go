@@ -10,11 +10,11 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/moond4rk/ccstatus/internal/config"
-	"github.com/moond4rk/ccstatus/internal/render"
-	"github.com/moond4rk/ccstatus/internal/status"
-	"github.com/moond4rk/ccstatus/internal/terminal"
-	"github.com/moond4rk/ccstatus/internal/widget"
+	"github.com/djosix/ccstatus/internal/config"
+	"github.com/djosix/ccstatus/internal/render"
+	"github.com/djosix/ccstatus/internal/status"
+	"github.com/djosix/ccstatus/internal/terminal"
+	"github.com/djosix/ccstatus/internal/widget"
 )
 
 var version = "dev"

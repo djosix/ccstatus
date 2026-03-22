@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/moond4rk/ccstatus/internal/config"
+	"github.com/djosix/ccstatus/internal/config"
 )
 
 const defaultCommandTimeout = 3 * time.Second

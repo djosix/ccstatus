@@ -4,9 +4,9 @@ package render
 import (
 	"strings"
 
-	"github.com/moond4rk/ccstatus/internal/color"
-	"github.com/moond4rk/ccstatus/internal/config"
-	"github.com/moond4rk/ccstatus/internal/widget"
+	"github.com/djosix/ccstatus/internal/color"
+	"github.com/djosix/ccstatus/internal/config"
+	"github.com/djosix/ccstatus/internal/widget"
 )
 
 const (

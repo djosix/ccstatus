@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/moond4rk/ccstatus/internal/config"
-	"github.com/moond4rk/ccstatus/internal/status"
+	"github.com/djosix/ccstatus/internal/config"
+	"github.com/djosix/ccstatus/internal/status"
 )
 
 // rateLimitRefillExtractor extracts a refill duration from status Data.

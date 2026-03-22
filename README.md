@@ -1,21 +1,13 @@
 # ccstatus
 
-[![Go CI](https://github.com/moond4rk/ccstatus/actions/workflows/ci.yml/badge.svg)](https://github.com/moond4rk/ccstatus/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/moond4rk/ccstatus/branch/main/graph/badge.svg)](https://codecov.io/gh/moond4rk/ccstatus)
-[![Go Reference](https://pkg.go.dev/badge/github.com/moond4rk/ccstatus.svg)](https://pkg.go.dev/github.com/moond4rk/ccstatus)
-[![Go Report Card](https://goreportcard.com/badge/github.com/moond4rk/ccstatus)](https://goreportcard.com/report/github.com/moond4rk/ccstatus)
-[![License](https://img.shields.io/github/license/moond4rk/ccstatus)](https://github.com/moond4rk/ccstatus/blob/main/LICENSE)
-
 A customizable status line formatter for [Claude Code](https://code.claude.com/) CLI. Reads JSON session data from stdin, renders an ANSI-colored status line, and outputs to stdout.
 
-<p align="center">
-  <img src="docs/terminal-screenshot.png" alt="ccstatus in Claude Code terminal" width="800">
-</p>
+Forked from [moond4rk/ccstatus](https://github.com/moond4rk/ccstatus).
 
 ## Features
 
 - Single static binary with no runtime dependencies
-- 37 configurable widgets (model, tokens, context, git, cost, and more)
+- 40 configurable widgets (model, tokens, context, git, cost, rate limits, and more)
 - Multi-line status line with flex separator layout
 - ANSI 16-color support via [fatih/color](https://github.com/fatih/color)
 - Configurable via `~/.config/ccstatus/settings.json`
@@ -23,23 +15,9 @@ A customizable status line formatter for [Claude Code](https://code.claude.com/)
 
 ## Installation
 
-### Homebrew
-
 ```bash
-brew install moond4rk/tap/ccstatus
+go install github.com/djosix/ccstatus/cmd/ccstatus@latest
 ```
-
-### Go
-
-```bash
-go install github.com/moond4rk/ccstatus/cmd/ccstatus@latest
-```
-
-### Binary
-
-Download a prebuilt binary from [GitHub Releases](https://github.com/moond4rk/ccstatus/releases).
-
-> **Note:** ccstatus is a native Go binary and does not require Node.js. Unlike JS-based tools that use `npx`, ccstatus is best installed via Homebrew or `go install` for optimal performance.
 
 ## Quick Start
 
@@ -51,103 +29,19 @@ ccstatus init
 ccstatus install
 ```
 
-That's it. Claude Code will now display the status line after each assistant message.
+Claude Code will now display the status line after each assistant message.
 
 ## CLI Reference
 
-```
-ccstatus [flags]
-ccstatus [command]
-```
-
-### Commands
-
 | Command | Description |
 |---------|-------------|
-| `init` | Generate default `settings.json` at the ccstatus config directory |
-| `install` | Register ccstatus as the status line command in Claude Code's `settings.json` |
-| `uninstall` | Remove ccstatus status line configuration from Claude Code's `settings.json` |
+| `init` | Generate default `settings.json` at `~/.config/ccstatus/` |
+| `install` | Register ccstatus in Claude Code's `settings.json` |
+| `uninstall` | Remove ccstatus from Claude Code's `settings.json` |
 | `validate` | Validate `settings.json` for correctness |
 | `dump` | Save raw JSON input from Claude Code to a file for debugging |
 | `widgets` | List all registered widget types with descriptions and default colors |
 | `completion` | Generate shell autocompletion script (bash, zsh, fish, powershell) |
-
-### Global Flags
-
-| Flag | Description |
-|------|-------------|
-| `-h, --help` | Show help for any command |
-| `-v, --version` | Print version |
-
-### Command Details
-
-#### `ccstatus init`
-
-```bash
-ccstatus init [--force]
-```
-
-Generates a default `settings.json` at `~/.config/ccstatus/settings.json`. Use `--force` to overwrite an existing file.
-
-#### `ccstatus install`
-
-```bash
-ccstatus install
-```
-
-Registers ccstatus in Claude Code's `~/.claude/settings.json` (or `$CLAUDE_CONFIG_DIR/settings.json`) by adding:
-
-```json
-{
-  "statusLine": {
-    "type": "command",
-    "command": "ccstatus",
-    "padding": 0
-  }
-}
-```
-
-#### `ccstatus uninstall`
-
-```bash
-ccstatus uninstall
-```
-
-Removes the ccstatus status line configuration from Claude Code's settings.
-
-#### `ccstatus validate`
-
-```bash
-ccstatus validate
-```
-
-Checks `settings.json` for errors such as unknown widget types, missing IDs, or invalid color names.
-
-#### `ccstatus dump`
-
-```bash
-ccstatus dump [--output FILE]
-```
-
-Reads JSON from stdin (same as normal mode), saves it to a file, and renders the status line. Default output: `/tmp/ccstatus-dump.json`. Useful for inspecting what Claude Code sends.
-
-#### `ccstatus widgets`
-
-```bash
-ccstatus widgets
-```
-
-Lists all registered widget types with their descriptions and default colors.
-
-## Usage
-
-```bash
-# Default: read JSON from stdin, render status line
-echo '{"model":{"id":"claude-opus-4-6","display_name":"Opus"}}' | ccstatus
-
-# Replay captured dump data
-cat /tmp/ccstatus-dump.json | ccstatus
-```
 
 ## Configuration
 
@@ -155,17 +49,17 @@ Settings are stored at `~/.config/ccstatus/settings.json`. Edit manually to cust
 
 ### Default Layout
 
-The default configuration uses a 2-line layout:
+2-line layout:
 
-**Line 1:** model | context % | input tokens | output tokens | cache hit rate | git branch | lines +/- | session cost
+**Line 1:** model | working directory | session clock | git branch +added -removed
 
-**Line 2:** working directory [flex space] session clock
+**Line 2:** context % | input tokens | output tokens | cache hit rate | 5h rate limit + refill | 7d rate limit + refill
 
 ### Settings Reference
 
 ```json
 {
-  "version": 4,
+  "version": 5,
   "colorLevel": 2,
   "flexMode": "full-until-compact",
   "compactThreshold": 60,
@@ -187,7 +81,7 @@ The default configuration uses a 2-line layout:
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `version` | int | `4` | Config schema version |
+| `version` | int | `5` | Config schema version |
 | `colorLevel` | int | `2` | Color level: `0` (none), `1` (basic), `2` (256-color terminal) |
 | `flexMode` | string | `"full-until-compact"` | How flex separator calculates available width |
 | `compactThreshold` | int | `60` | Context % threshold for switching to compact mode |
@@ -259,6 +153,10 @@ The default configuration uses a 2-line layout:
 | `lines-changed` | Git | Lines changed (+N/-M) | green |
 | `lines-added` | Git | Lines added | green |
 | `lines-removed` | Git | Lines removed | red |
+| `rate-5h` | JSON | 5-hour rate limit usage % | yellow |
+| `rate-7d` | JSON | 7-day rate limit usage % | brightBlack |
+| `rate-5h-refill` | JSON | Time until 5-hour rate limit resets | yellow |
+| `rate-7d-refill` | JSON | Time until 7-day rate limit resets | brightBlack |
 | `vim-mode` | JSON | Vim mode indicator | yellow |
 | `agent-name` | JSON | Agent name | cyan |
 | `exceeds-200k` | JSON | Warning at 200k tokens | red |
@@ -270,7 +168,7 @@ The default configuration uses a 2-line layout:
 
 ## How It Works
 
-Claude Code pipes JSON session data to stdin on each update (after assistant messages, permission changes, vim mode toggles). ccstatus parses the JSON, renders widgets according to the configured layout, and outputs ANSI-colored text to stdout.
+Claude Code pipes JSON session data to stdin on each update. ccstatus parses the JSON, renders widgets according to the configured layout, and outputs ANSI-colored text to stdout.
 
 ```
 Claude Code  --[JSON]--> ccstatus --[ANSI text]--> status line
@@ -296,6 +194,7 @@ cat /tmp/ccstatus-dump.json | ccstatus
 ## References
 
 - [Claude Code Status Line Documentation](https://code.claude.com/docs/en/statusline)
+- [moond4rk/ccstatus](https://github.com/moond4rk/ccstatus) - Original Go implementation
 - [ccstatusline](https://github.com/sirmalloc/ccstatusline) - Original TypeScript implementation
 
 ## License

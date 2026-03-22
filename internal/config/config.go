@@ -8,7 +8,7 @@ import (
 
 const (
 	// CurrentVersion is the current settings schema version.
-	CurrentVersion = 4
+	CurrentVersion = 5
 
 	configDirName  = "ccstatus"
 	configFileName = "settings.json"
@@ -42,25 +42,28 @@ func DefaultSettings() Settings {
 			{
 				{ID: "1", Type: "model", Color: "cyan"},
 				{ID: "2", Type: "separator"},
-				{ID: "3", Type: "context-percentage", Color: "brightBlack"},
+				{ID: "3", Type: "current-working-dir", Color: "blue", RawValue: true},
 				{ID: "4", Type: "separator"},
-				{ID: "5", Type: "tokens-input", Color: "white"},
+				{ID: "5", Type: "session-clock", Color: "white"},
 				{ID: "6", Type: "separator"},
-				{ID: "7", Type: "tokens-output", Color: "white"},
-				{ID: "8", Type: "separator"},
-				{ID: "9", Type: "cache-hit-rate", Color: "cyan"},
-				{ID: "10", Type: "separator"},
-				{ID: "11", Type: "git-branch", Color: "magenta"},
-				{ID: "12", Type: "separator"},
-				{ID: "13", Type: "lines-added", Color: "green"},
-				{ID: "14", Type: "lines-removed", Color: "red"},
-				{ID: "15", Type: "separator"},
-				{ID: "16", Type: "session-cost", Color: "green"},
+				{ID: "7", Type: "git-branch", Color: "magenta"},
+				{ID: "8", Type: "lines-added", Color: "green"},
+				{ID: "9", Type: "lines-removed", Color: "red"},
 			},
 			{
-				{ID: "17", Type: "current-working-dir", Color: "blue", RawValue: true},
-				{ID: "18", Type: "separator"},
-				{ID: "19", Type: "session-clock", Color: "white"},
+				{ID: "10", Type: "context-percentage", Color: "brightBlack"},
+				{ID: "11", Type: "separator"},
+				{ID: "12", Type: "tokens-input", Color: "white"},
+				{ID: "13", Type: "separator"},
+				{ID: "14", Type: "tokens-output", Color: "white"},
+				{ID: "15", Type: "separator"},
+				{ID: "16", Type: "cache-hit-rate", Color: "cyan"},
+				{ID: "17", Type: "separator"},
+				{ID: "18", Type: "rate-5h", Color: "yellow"},
+				{ID: "19", Type: "rate-5h-refill", Color: "yellow"},
+				{ID: "20", Type: "separator"},
+				{ID: "21", Type: "rate-7d", Color: "brightBlack"},
+				{ID: "22", Type: "rate-7d-refill", Color: "brightBlack"},
 			},
 		},
 	}

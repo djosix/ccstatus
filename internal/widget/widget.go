@@ -206,6 +206,24 @@ var registry = map[string]Widget{
 	"exceeds-200k":   &Exceeds200KWidget{},
 	"terminal-width": &TerminalWidthWidget{},
 
+	// Rate limits
+	"rate-5h": &percentageWidget{
+		extract: status.FiveHourUsage, displayName: "5h Rate Limit", description: "5-hour rate limit usage percentage",
+		defaultPrefix: "5h: ",
+	},
+	"rate-7d": &percentageWidget{
+		extract: status.SevenDayUsage, displayName: "7d Rate Limit", description: "7-day rate limit usage percentage",
+		defaultPrefix: "7d: ",
+	},
+	"rate-5h-refill": &rateLimitRefillWidget{
+		extract: status.FiveHourRefill, displayName: "5h Refill", description: "Time until 5-hour rate limit resets",
+		defaultPrefix: "~",
+	},
+	"rate-7d-refill": &rateLimitRefillWidget{
+		extract: status.SevenDayRefill, displayName: "7d Refill", description: "Time until 7-day rate limit resets",
+		defaultPrefix: "~",
+	},
+
 	// User-defined
 	"custom-text":    &CustomTextWidget{},
 	"custom-command": &CustomCommandWidget{},

@@ -2,6 +2,7 @@ package status
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -301,3 +302,205 @@ func TestContextLength(t *testing.T) {
 		})
 	}
 }
+
+func TestFiveHourUsage(t *testing.T) {
+	floatPtr := func(v float64) *float64 { return &v }
+
+	tests := []struct {
+		name   string
+		data   *Session
+		want   float64
+		wantOK bool
+	}{
+		{
+			name: "valid percentage",
+			data: &Session{RateLimits: &RateLimits{
+				FiveHour: &RateLimitWindow{UsedPercentage: floatPtr(23.5)},
+			}},
+			want: 23.5, wantOK: true,
+		},
+		{
+			name: "zero is valid",
+			data: &Session{RateLimits: &RateLimits{
+				FiveHour: &RateLimitWindow{UsedPercentage: floatPtr(0)},
+			}},
+			want: 0, wantOK: true,
+		},
+		{
+			name:   "nil rate limits",
+			data:   &Session{},
+			want:   0,
+			wantOK: false,
+		},
+		{
+			name:   "nil five_hour",
+			data:   &Session{RateLimits: &RateLimits{}},
+			want:   0,
+			wantOK: false,
+		},
+		{
+			name: "nil used_percentage",
+			data: &Session{RateLimits: &RateLimits{
+				FiveHour: &RateLimitWindow{},
+			}},
+			want:   0,
+			wantOK: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, ok := FiveHourUsage(tt.data)
+			assert.Equal(t, tt.wantOK, ok)
+			assert.InDelta(t, tt.want, got, 0.01)
+		})
+	}
+}
+
+func TestSevenDayUsage(t *testing.T) {
+	floatPtr := func(v float64) *float64 { return &v }
+
+	tests := []struct {
+		name   string
+		data   *Session
+		want   float64
+		wantOK bool
+	}{
+		{
+			name: "valid percentage",
+			data: &Session{RateLimits: &RateLimits{
+				SevenDay: &RateLimitWindow{UsedPercentage: floatPtr(41.2)},
+			}},
+			want: 41.2, wantOK: true,
+		},
+		{
+			name:   "nil rate limits",
+			data:   &Session{},
+			want:   0,
+			wantOK: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, ok := SevenDayUsage(tt.data)
+			assert.Equal(t, tt.wantOK, ok)
+			assert.InDelta(t, tt.want, got, 0.01)
+		})
+	}
+}
+
+func TestFiveHourRefill(t *testing.T) {
+	tests := []struct {
+		name   string
+		data   *Session
+		wantOK bool
+		check  func(t *testing.T, d time.Duration)
+	}{
+		{
+			name: "future reset",
+			data: &Session{RateLimits: &RateLimits{
+				FiveHour: &RateLimitWindow{ResetsAt: int64Ptr(time.Now().Add(2 * time.Hour).Unix())},
+			}},
+			wantOK: true,
+			check: func(t *testing.T, d time.Duration) {
+				t.Helper()
+				// Should be approximately 2 hours.
+				assert.InDelta(t, 2*time.Hour, d, float64(2*time.Minute))
+			},
+		},
+		{
+			name: "past reset returns zero duration",
+			data: &Session{RateLimits: &RateLimits{
+				FiveHour: &RateLimitWindow{ResetsAt: int64Ptr(time.Now().Add(-1 * time.Hour).Unix())},
+			}},
+			wantOK: true,
+			check: func(t *testing.T, d time.Duration) {
+				t.Helper()
+				assert.Equal(t, time.Duration(0), d)
+			},
+		},
+		{
+			name:   "nil rate limits",
+			data:   &Session{},
+			wantOK: false,
+		},
+		{
+			name:   "nil resets_at",
+			data:   &Session{RateLimits: &RateLimits{FiveHour: &RateLimitWindow{}}},
+			wantOK: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d, ok := FiveHourRefill(tt.data)
+			assert.Equal(t, tt.wantOK, ok)
+			if tt.check != nil {
+				tt.check(t, d)
+			}
+		})
+	}
+}
+
+func TestSevenDayRefill(t *testing.T) {
+	tests := []struct {
+		name   string
+		data   *Session
+		wantOK bool
+		check  func(t *testing.T, d time.Duration)
+	}{
+		{
+			name: "future reset",
+			data: &Session{RateLimits: &RateLimits{
+				SevenDay: &RateLimitWindow{ResetsAt: int64Ptr(time.Now().Add(72 * time.Hour).Unix())},
+			}},
+			wantOK: true,
+			check: func(t *testing.T, d time.Duration) {
+				t.Helper()
+				assert.InDelta(t, 72*time.Hour, d, float64(2*time.Minute))
+			},
+		},
+		{
+			name:   "nil rate limits",
+			data:   &Session{},
+			wantOK: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d, ok := SevenDayRefill(tt.data)
+			assert.Equal(t, tt.wantOK, ok)
+			if tt.check != nil {
+				tt.check(t, d)
+			}
+		})
+	}
+}
+
+func TestFormatRefillDuration(t *testing.T) {
+	tests := []struct {
+		name string
+		d    time.Duration
+		want string
+	}{
+		{"zero", 0, "<1m"},
+		{"negative", -5 * time.Minute, "<1m"},
+		{"seconds only", 30 * time.Second, "<1m"},
+		{"minutes only", 45 * time.Minute, "45m"},
+		{"hours and minutes", 2*time.Hour + 15*time.Minute, "2h15m"},
+		{"hours only", 3 * time.Hour, "3h"},
+		{"days and hours", 3*24*time.Hour + 5*time.Hour, "3d5h"},
+		{"days only", 2 * 24 * time.Hour, "2d"},
+		{"one minute", 1 * time.Minute, "1m"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			assert.Equal(t, tt.want, FormatRefillDuration(tt.d))
+		})
+	}
+}
+
+func int64Ptr(v int64) *int64 { return &v }

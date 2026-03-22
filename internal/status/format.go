@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -107,6 +108,81 @@ func CacheHitRate(data *Session) (float64, bool) {
 		return 0, false
 	}
 	return float64(data.ContextWindow.CurrentUsage.CacheReadInputTokens) / float64(total) * 100, true
+}
+
+// FiveHourUsage returns the 5-hour rate limit usage percentage.
+// Returns (value, ok) where ok=false means no data available.
+func FiveHourUsage(data *Session) (float64, bool) {
+	if data.RateLimits == nil || data.RateLimits.FiveHour == nil || data.RateLimits.FiveHour.UsedPercentage == nil {
+		return 0, false
+	}
+	return *data.RateLimits.FiveHour.UsedPercentage, true
+}
+
+// SevenDayUsage returns the 7-day rate limit usage percentage.
+// Returns (value, ok) where ok=false means no data available.
+func SevenDayUsage(data *Session) (float64, bool) {
+	if data.RateLimits == nil || data.RateLimits.SevenDay == nil || data.RateLimits.SevenDay.UsedPercentage == nil {
+		return 0, false
+	}
+	return *data.RateLimits.SevenDay.UsedPercentage, true
+}
+
+// FiveHourRefill returns the time remaining until the 5-hour rate limit resets.
+// Returns (duration, ok) where ok=false means no data available or already reset.
+func FiveHourRefill(data *Session) (time.Duration, bool) {
+	return rateLimitRefill(data.RateLimits, func(rl *RateLimits) *RateLimitWindow { return rl.FiveHour })
+}
+
+// SevenDayRefill returns the time remaining until the 7-day rate limit resets.
+// Returns (duration, ok) where ok=false means no data available or already reset.
+func SevenDayRefill(data *Session) (time.Duration, bool) {
+	return rateLimitRefill(data.RateLimits, func(rl *RateLimits) *RateLimitWindow { return rl.SevenDay })
+}
+
+func rateLimitRefill(rl *RateLimits, window func(*RateLimits) *RateLimitWindow) (time.Duration, bool) {
+	if rl == nil {
+		return 0, false
+	}
+	w := window(rl)
+	if w == nil || w.ResetsAt == nil {
+		return 0, false
+	}
+	resetTime := time.Unix(*w.ResetsAt, 0)
+	remaining := time.Until(resetTime)
+	if remaining < 0 {
+		return 0, true
+	}
+	return remaining, true
+}
+
+// FormatRefillDuration formats a duration as a human-readable refill time.
+// Examples: "2h15m", "3d5h", "<1m", "45m"
+func FormatRefillDuration(d time.Duration) string {
+	if d <= 0 {
+		return "<1m"
+	}
+	totalMinutes := int(d.Minutes())
+	days := totalMinutes / (60 * 24)
+	hours := (totalMinutes % (60 * 24)) / 60
+	mins := totalMinutes % 60
+
+	if days > 0 && hours > 0 {
+		return fmt.Sprintf("%dd%dh", days, hours)
+	}
+	if days > 0 {
+		return fmt.Sprintf("%dd", days)
+	}
+	if hours > 0 && mins > 0 {
+		return fmt.Sprintf("%dh%dm", hours, mins)
+	}
+	if hours > 0 {
+		return fmt.Sprintf("%dh", hours)
+	}
+	if mins > 0 {
+		return fmt.Sprintf("%dm", mins)
+	}
+	return "<1m"
 }
 
 // ContextLength returns the total input token count (context length).

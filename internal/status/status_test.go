@@ -78,6 +78,38 @@ func TestParse(t *testing.T) {
 			},
 		},
 		{
+			name:  "rate limits",
+			input: `{"rate_limits":{"five_hour":{"used_percentage":23.5,"resets_at":1738425600},"seven_day":{"used_percentage":41.2,"resets_at":1738857600}}}`,
+			check: func(t *testing.T, s *Session) {
+				t.Helper()
+				require.NotNil(t, s.RateLimits)
+
+				require.NotNil(t, s.RateLimits.FiveHour)
+				require.NotNil(t, s.RateLimits.FiveHour.UsedPercentage)
+				assert.InDelta(t, 23.5, *s.RateLimits.FiveHour.UsedPercentage, 0.01)
+				require.NotNil(t, s.RateLimits.FiveHour.ResetsAt)
+				assert.Equal(t, int64(1738425600), *s.RateLimits.FiveHour.ResetsAt)
+
+				require.NotNil(t, s.RateLimits.SevenDay)
+				require.NotNil(t, s.RateLimits.SevenDay.UsedPercentage)
+				assert.InDelta(t, 41.2, *s.RateLimits.SevenDay.UsedPercentage, 0.01)
+				require.NotNil(t, s.RateLimits.SevenDay.ResetsAt)
+				assert.Equal(t, int64(1738857600), *s.RateLimits.SevenDay.ResetsAt)
+			},
+		},
+		{
+			name:  "rate limits partial - only five_hour",
+			input: `{"rate_limits":{"five_hour":{"used_percentage":50}}}`,
+			check: func(t *testing.T, s *Session) {
+				t.Helper()
+				require.NotNil(t, s.RateLimits)
+				require.NotNil(t, s.RateLimits.FiveHour)
+				require.NotNil(t, s.RateLimits.FiveHour.UsedPercentage)
+				assert.InDelta(t, 50.0, *s.RateLimits.FiveHour.UsedPercentage, 0.01)
+				assert.Nil(t, s.RateLimits.SevenDay)
+			},
+		},
+		{
 			name:  "empty JSON object",
 			input: `{}`,
 			check: func(t *testing.T, s *Session) {

@@ -22,6 +22,7 @@ type Session struct {
 	Vim            *VimInfo       `json:"vim,omitempty"`
 	Agent          *AgentInfo     `json:"agent,omitempty"`
 	Worktree       *WorktreeInfo  `json:"worktree,omitempty"`
+	RateLimits     *RateLimits    `json:"rate_limits,omitempty"`
 }
 
 // Parse parses JSON data into Session.
@@ -136,6 +137,20 @@ type VimInfo struct {
 // AgentInfo is only present when running with --agent flag or agent settings.
 type AgentInfo struct {
 	Name string `json:"name,omitempty"`
+}
+
+// RateLimits holds rate limit usage for Claude.ai subscribers (Pro/Max).
+// Only present after the first API response in the session.
+// Each window (FiveHour, SevenDay) may be independently absent.
+type RateLimits struct {
+	FiveHour *RateLimitWindow `json:"five_hour,omitempty"`
+	SevenDay *RateLimitWindow `json:"seven_day,omitempty"`
+}
+
+// RateLimitWindow holds usage and reset info for a single rate limit window.
+type RateLimitWindow struct {
+	UsedPercentage *float64 `json:"used_percentage,omitempty"`
+	ResetsAt       *int64   `json:"resets_at,omitempty"`
 }
 
 // WorktreeInfo is only present during --worktree sessions.

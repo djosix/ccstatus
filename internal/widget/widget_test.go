@@ -57,6 +57,10 @@ func TestGet(t *testing.T) {
 		{"custom-command", false},
 		{"git-worktree", false},
 		{"block-timer", false},
+		{"rate-5h", false},
+		{"rate-7d", false},
+		{"rate-5h-refill", false},
+		{"rate-7d-refill", false},
 		{"nonexistent", true},
 	}
 
@@ -1323,6 +1327,143 @@ func TestBlockTimerWidget(t *testing.T) {
 
 	assert.Equal(t, defaultDimColor, w.DefaultColor())
 	assert.False(t, w.SupportsRawValue())
+}
+
+func TestRateLimitPercentageWidgets(t *testing.T) {
+	settings := config.DefaultSettings()
+
+	t.Run("rate-5h renders percentage", func(t *testing.T) {
+		w := Get("rate-5h")
+		require.NotNil(t, w)
+		item := config.WidgetItem{}
+		ctx := RenderContext{Data: &status.Session{
+			RateLimits: &status.RateLimits{
+				FiveHour: &status.RateLimitWindow{UsedPercentage: floatPtr(23.5)},
+			},
+		}}
+		assert.Equal(t, "24%", w.Render(&item, ctx, &settings))
+	})
+
+	t.Run("rate-5h raw value", func(t *testing.T) {
+		w := Get("rate-5h")
+		item := config.WidgetItem{RawValue: true}
+		ctx := RenderContext{Data: &status.Session{
+			RateLimits: &status.RateLimits{
+				FiveHour: &status.RateLimitWindow{UsedPercentage: floatPtr(23.5)},
+			},
+		}}
+		assert.Equal(t, "23.5", w.Render(&item, ctx, &settings))
+	})
+
+	t.Run("rate-7d renders percentage", func(t *testing.T) {
+		w := Get("rate-7d")
+		require.NotNil(t, w)
+		item := config.WidgetItem{}
+		ctx := RenderContext{Data: &status.Session{
+			RateLimits: &status.RateLimits{
+				SevenDay: &status.RateLimitWindow{UsedPercentage: floatPtr(41.2)},
+			},
+		}}
+		assert.Equal(t, "41%", w.Render(&item, ctx, &settings))
+	})
+
+	t.Run("rate-5h nil rate limits returns empty", func(t *testing.T) {
+		w := Get("rate-5h")
+		item := config.WidgetItem{}
+		ctx := RenderContext{Data: &status.Session{}}
+		assert.Empty(t, w.Render(&item, ctx, &settings))
+	})
+
+	t.Run("rate-5h nil data returns empty", func(t *testing.T) {
+		w := Get("rate-5h")
+		item := config.WidgetItem{}
+		ctx := RenderContext{Data: nil}
+		assert.Empty(t, w.Render(&item, ctx, &settings))
+	})
+}
+
+func TestRateLimitRefillWidgets(t *testing.T) {
+	settings := config.DefaultSettings()
+
+	t.Run("rate-5h-refill renders duration", func(t *testing.T) {
+		w := Get("rate-5h-refill")
+		require.NotNil(t, w)
+		item := config.WidgetItem{}
+		resetAt := time.Now().Add(2*time.Hour + 15*time.Minute).Unix()
+		ctx := RenderContext{Data: &status.Session{
+			RateLimits: &status.RateLimits{
+				FiveHour: &status.RateLimitWindow{ResetsAt: &resetAt},
+			},
+		}}
+		result := w.Render(&item, ctx, &settings)
+		assert.Contains(t, result, "2h")
+	})
+
+	t.Run("rate-7d-refill renders duration", func(t *testing.T) {
+		w := Get("rate-7d-refill")
+		require.NotNil(t, w)
+		item := config.WidgetItem{}
+		resetAt := time.Now().Add(3*24*time.Hour + 5*time.Hour).Unix()
+		ctx := RenderContext{Data: &status.Session{
+			RateLimits: &status.RateLimits{
+				SevenDay: &status.RateLimitWindow{ResetsAt: &resetAt},
+			},
+		}}
+		result := w.Render(&item, ctx, &settings)
+		assert.Contains(t, result, "3d")
+	})
+
+	t.Run("rate-5h-refill raw value returns seconds", func(t *testing.T) {
+		w := Get("rate-5h-refill")
+		item := config.WidgetItem{RawValue: true}
+		resetAt := time.Now().Add(1 * time.Hour).Unix()
+		ctx := RenderContext{Data: &status.Session{
+			RateLimits: &status.RateLimits{
+				FiveHour: &status.RateLimitWindow{ResetsAt: &resetAt},
+			},
+		}}
+		result := w.Render(&item, ctx, &settings)
+		assert.NotEmpty(t, result)
+		// Should be a numeric string around 3600.
+		assert.Regexp(t, `^\d+$`, result)
+	})
+
+	t.Run("rate-5h-refill past reset", func(t *testing.T) {
+		w := Get("rate-5h-refill")
+		item := config.WidgetItem{}
+		resetAt := time.Now().Add(-1 * time.Hour).Unix()
+		ctx := RenderContext{Data: &status.Session{
+			RateLimits: &status.RateLimits{
+				FiveHour: &status.RateLimitWindow{ResetsAt: &resetAt},
+			},
+		}}
+		assert.Equal(t, "<1m", w.Render(&item, ctx, &settings))
+	})
+
+	t.Run("rate-5h-refill nil data returns empty", func(t *testing.T) {
+		w := Get("rate-5h-refill")
+		item := config.WidgetItem{}
+		ctx := RenderContext{Data: nil}
+		assert.Empty(t, w.Render(&item, ctx, &settings))
+	})
+
+	t.Run("rate-5h-refill nil rate limits returns empty", func(t *testing.T) {
+		w := Get("rate-5h-refill")
+		item := config.WidgetItem{}
+		ctx := RenderContext{Data: &status.Session{}}
+		assert.Empty(t, w.Render(&item, ctx, &settings))
+	})
+
+	t.Run("rate-7d-refill nil resets_at returns empty", func(t *testing.T) {
+		w := Get("rate-7d-refill")
+		item := config.WidgetItem{}
+		ctx := RenderContext{Data: &status.Session{
+			RateLimits: &status.RateLimits{
+				SevenDay: &status.RateLimitWindow{},
+			},
+		}}
+		assert.Empty(t, w.Render(&item, ctx, &settings))
+	})
 }
 
 func TestStripANSI(t *testing.T) {
